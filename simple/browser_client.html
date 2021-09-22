@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>WebSocket</title>
+  </head>
+  <style>
+    .center{ margin: 0px auto 0px auto; text-align: center; }
+    .chatContainer{ width: 90%; padding: 0px; margin: 0px auto; display: table;  border: 0px solid black; }
+    .colsm8{ width: 66.3%; float: left; text-align: center; margin: 0px; padding: 0px; display: table-cell; border: 0px solid black; }
+    .colsm4{ width: 33.3%; float: left; text-align: center; margin: 0px; padding: 0px; display: table-cell; border: 0px solid black; }
+    .inputWidth{ width: 95%; }
+    .inputSpacing{ margin: 0px auto; }
+    .inputPadding{ padding: 8px; }
+  </style>
+  <body>
+    <div class='center chatContainer'>
+      Message Log<br/>
+      <textarea class='inputWidth inputSpacing inputPadding' disabled='disabled' cols='' rows='10' id='textareaLog'></textarea>
+      <br />
+      <br />
+      <div class='colsm8'>
+        <input class='inputWidth inputSpacing inputPadding' type='text' id='inputMessage' placeholder='type message here...' />
+      </div>
+      <div class='colsm4'>
+        <input class='inputWidth inputSpacing inputPadding' type='button' id='inputSendMessage' onclick='sendMessage();' value='send message' />
+      </div>
+    </div>
+  </body>
+  <script>
+    const ws = new WebSocket('ws://localhost:9898/');
+    ws.onopen = function() {
+      console.log('WebSocket Client Connected');
+      // ws.send('Hi this is web client. Test');
+    };
+    ws.onmessage = function(e) {
+      console.log("Received: '" + e.data + "'");
+      getMessage(e.data);
+    };
+
+    addKeyPressEnter();
+    function addKeyPressEnter() {
+      // Get the input field
+      var input = document.getElementById("inputMessage");
+
+      // Execute a function when the user releases a key on the keyboard
+      input.addEventListener("keyup", function(event) {
+        // Number 13 is the "Enter" key on the keyboard
+        if (event.keyCode === 13) {
+          // Cancel the default action, if needed
+          event.preventDefault();
+          // Trigger the button element with a click
+          document.getElementById("inputSendMessage").click();
+        }
+      });
+    }
+
+    function update() { // eslint-disable-line class-methods-use-this
+      if ('caches' in window) {
+        caches.keys().then((names) => {
+          // Delete all the cache files
+          names.forEach((name) => {
+            caches.delete(name);
+          });
+        });
+
+        // Makes sure the page reloads. Changes are only visible after you refresh.
+        window.location.reload(true);
+      }
+    }
+    function getMessage(message) {
+      document.getElementById('textareaLog').value += message + '\n';
+    }
+    function sendMessage() {
+      let message = document.getElementById('inputMessage').value;
+      document.getElementById('inputMessage').value = '';
+      let log = document.getElementById('textareaLog').value;
+      document.getElementById('textareaLog').value += message + '\n';
+      ws.send(`${message}`);
+    }
+  </script>
+</html>
